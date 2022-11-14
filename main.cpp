@@ -137,8 +137,8 @@ int main() {
     }
     
     // TODO VBOs and EBOs aren't being deleted
-    // glDeleteBuffers(3, VBO);
-    // glDeleteBuffers(1, &EBO);
+//     glDeleteBuffers(3, VBO);
+//     glDeleteBuffers(1, &EBO);
     
     glfwTerminate();
     
