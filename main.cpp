@@ -19,9 +19,6 @@
 
 const GLint WIDTH = 1000, HEIGHT = 800;
 
-// Structs
-
-
 // Functions
 int init();
 void processInput(GLFWwindow *window, Shader &shader);
