@@ -39,6 +39,7 @@ void setup_instancing(GLuint &VAO, std::vector<GLuint> &plant_chunk, std::string
 GLFWwindow *window;
 
 // Map params
+///por ahora, convalidar que sean los mismos valores que en la clase GenerateMap.h
 float WATER_HEIGHT = 0.05;
 int chunk_render_distance = 6;
 int xMapChunks = 6;
@@ -51,11 +52,11 @@ float originX = (chunkWidth  * xMapChunks) / 2 - chunkWidth / 2;
 float originY = (chunkHeight * yMapChunks) / 2 - chunkHeight / 2;
 
 // Noise params
-int octaves = 8;
-float meshHeight = 255;  // Vertical scaling
-float noiseScale = 128;  // Horizontal scaling
-float persistence = 0.5;
-float lacunarity = 2;
+//int octaves = 8;
+//float meshHeight = 255;  // Vertical scaling
+//float noiseScale = 128;  // Horizontal scaling
+//float persistence = 0.5;
+//float lacunarity = 2;
 
 // Model params
 float MODEL_SCALE = 3;
@@ -106,6 +107,11 @@ int main() {
     
 	///Mapa
 	GenerateMap Mapa(xMapChunks, yMapChunks);
+	Mapa.setOctaves(16);
+	Mapa.setMeshHeight(256.f);
+	Mapa.setNoiseScale(512.f);
+	Mapa.setPersistence(0.5f);
+	Mapa.setLacunarity(2.f);
 	
     for (int y = 0; y < yMapChunks; y++)
         for (int x = 0; x < xMapChunks; x++) {
@@ -139,7 +145,7 @@ int main() {
         glDeleteVertexArrays(1, &flower_chunks[i]);
     }
     
-    // TODO VBOs and EBOs aren't being deleted
+    // Borrar buffers
 	glDeleteBuffers(3, &VBO);
     glDeleteBuffers(1, &EBO);
     
