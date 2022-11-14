@@ -38,10 +38,6 @@ struct plant {
 class GenerateMap {
 public:
 	GenerateMap(int xMapChunks, int yMapChunks);
-//	/// 6 - GENERAR MAPA
-//	void generate_map_chunk(GLuint &VAO, int xOffset, int yOffset, std::vector<plant> &plants);
-	
-	
 	//Adicional
 	glm::vec3 get_color(int r, int g, int b) {
 		return glm::vec3(r/255.0, g/255.0, b/255.0);
@@ -57,6 +53,13 @@ public:
 	std::vector<float> generate_normals(const std::vector<int> &indices, const std::vector<float> &vertices);
 	/// 5 - GENERAR BIOMA
 	std::vector<float> generate_biome(const std::vector<float> &vertices, std::vector<plant> &plants, int xOffset, int yOffset);
+	
+	///SETTERS DE PERLIN
+	void setOctaves (int octaves);
+	void setMeshHeight (float meshHeight);
+	void setNoiseScale (float noiseScale);
+	void setPersistence (float persistence);
+	void setLacunarity (float lacunarity);
 private:
 	///Atributos
 	float WATER_HEIGHT = 0.05;
@@ -70,8 +73,17 @@ private:
 	float originX = (chunkWidth  * xMapChunks) / 2 - chunkWidth / 2;
 	float originY = (chunkHeight * yMapChunks) / 2 - chunkHeight / 2;
 	
-	
-	///Estos parámetros hacerlos en la clase de PERLIN_H
+	// Al modificar los parámetros de ruido, pasan las cosas
+	/**
+		Cantidad de octavas: relacionada a la suavidad de las superficies. A menor cantidad, más serruchadas las montañas
+		Persistencia: Se relaciona a la decaída de amplitud
+		Lacunarity: Se relaciona al incremento de frecuencia
+		meshHeight: Altura de la malla. Es como "Amplitud" si se ve la malla como dos ondas
+		noiseScale: Es como la "frecuencia"
+	**/
+	//Valores por default. La idea es que se cambien desde el main y se regenere el mapa.
+	int amplitud = 1;
+	int frecuencia = 1;
 	int octaves = 8;
 	float meshHeight = 255;  // Vertical scaling
 	float noiseScale = 128;  // Horizontal scaling
