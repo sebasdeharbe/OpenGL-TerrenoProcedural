@@ -76,6 +76,9 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 float currentFrame;
 
+//Buffers
+GLuint VBO, EBO;
+
 int main() {
     // Initalize variables
     glm::mat4 view;
@@ -137,8 +140,8 @@ int main() {
     }
     
     // TODO VBOs and EBOs aren't being deleted
-//     glDeleteBuffers(3, VBO);
-//     glDeleteBuffers(1, &EBO);
+	glDeleteBuffers(3, &VBO);
+    glDeleteBuffers(1, &EBO);
     
     glfwTerminate();
     
@@ -287,7 +290,7 @@ void load_model(GLuint &VAO, std::string filename) {
         }
     }
     
-    GLuint VBO, EBO;
+//    GLuint VBO, EBO;
     
     // Create buffers and arrays
     glGenBuffers(1, &VBO);
