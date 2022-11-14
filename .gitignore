@@ -1,0 +1,19 @@
+#El objetivo de este .gitignore es reducir el tamanio del repo
+
+# Prerequisitos
+*.d
+
+# Objetos compilados
+*.o
+
+# Librerias (por el momento, dejar comentado)
+# *.dll
+
+# Ejecutable
+*.exe
+
+# Zinjai Project (por el momento, dejar comentado)
+# *.zpr
+
+#Carpeta de basura
+tmp/*
