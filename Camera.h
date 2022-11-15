@@ -8,15 +8,15 @@
 
 //Enum para los posibles movimientos de cámara. 
 enum Camera_Movement{
-	FORWARD, BACKWARD, LEFT, RIGHT
+	FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN
 };
 
 //Valores predeteminados de la cámara
 const float YAW = -90.f; //ángulo de giro eje z
-const float PITCH = 0.0f; //ángulo de giro eje x
+const float PITCH = -45.0f; //ángulo de giro eje x
 const float SPEED = 32.0f;
 const float SENSITIVITY = 0.05f;
-const float ZOOM = 45.0f;
+const float ZOOM = 30.0f;
 
 class Camera {
 public:

@@ -21,10 +21,11 @@ const GLint WIDTH = 1000, HEIGHT = 800;
 
 // Functions
 int init();
-void processInput(GLFWwindow *window, Shader &shader);
+void processInput(GLFWwindow *window/*, Shader &shader*/);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void render(std::vector<GLuint> &map_chunks, Shader &shader, glm::mat4 &view, glm::mat4 &model, glm::mat4 &projection, int &nIndices, std::vector<GLuint> &tree_chunks, std::vector<GLuint> &flower_chunks);
+void keyboardCallback(GLFWwindow* glfw_win, int key, int scancode, int action, int mods); // extra callbacks (atajos de teclado para cambiar de modo y camara)
 
 //std::vector<int> generate_indices();
 //std::vector<float> generate_noise_map(int xOffset, int yOffset);
@@ -41,8 +42,8 @@ GLFWwindow *window;
 // Map params
 float WATER_HEIGHT = 0.05;
 int chunk_render_distance = 6;
-int xMapChunks = 6;
-int yMapChunks = 6;
+int xMapChunks = 1;
+int yMapChunks = 1;
 int chunkWidth = 128;
 int chunkHeight = 128;
 int gridPosX = 0;
@@ -66,7 +67,7 @@ double lastTime = glfwGetTime();
 int nbFrames = 0;
 
 // Camera
-Camera camera(glm::vec3(originX, chunkHeight*2.f, originY));
+Camera camera(glm::vec3(originX, chunkHeight*1.1f, originY));
 bool firstMouse = true;
 float lastX = WIDTH / 2;
 float lastY = HEIGHT / 2;
@@ -76,6 +77,18 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 float currentFrame;
 
+<<<<<<< Updated upstream
+=======
+//Showing styles
+bool wireframe = false;
+bool showingFlat = false;
+
+//Buffers
+GLuint VBO, EBO;
+
+Shader *shaderPtr = nullptr;
+
+>>>>>>> Stashed changes
 int main() {
     // Initalize variables
     glm::mat4 view;
@@ -87,17 +100,18 @@ int main() {
     if (init() != 0)
         return -1;
     
-    Shader shaders("shaders/objectShader.vert", "shaders/objectShader.frag");
-    
+    Shader shader("shaders/objectShader.vert", "shaders/objectShader.frag");
+	shaderPtr = &shader;
+	
     // Default to coloring to flat mode
-    shaders.use();
-    shaders.setBool("isFlat", true);
+    shader.use();
+    shader.setBool("isFlat", true);
     
     // Lighting intensities and direction
-    shaders.setVec3("light.ambient", 0.2, 0.2, 0.2);
-    shaders.setVec3("light.diffuse", 0.3, 0.3, 0.3);
-    shaders.setVec3("light.specular", 1.0, 1.0, 1.0);
-    shaders.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
+    shader.setVec3("light.ambient", 0.2, 0.2, 0.2);
+    shader.setVec3("light.diffuse", 0.3, 0.3, 0.3);
+    shader.setVec3("light.specular", 1.0, 1.0, 1.0);
+    shader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
     
     std::vector<GLuint> map_chunks(xMapChunks * yMapChunks);
     
@@ -120,14 +134,14 @@ int main() {
     
 	///LOOP PRINCIPAL
 	do{
-        shaders.use();
+        shader.use();
         projection = glm::perspective(glm::radians(camera.Zoom), (float)WIDTH / (float)HEIGHT, 0.1f, (float)chunkWidth * (chunk_render_distance - 1.2f));
         view = camera.GetViewMatrix();
-        shaders.setMat4("u_projection", projection);
-        shaders.setMat4("u_view", view);
-        shaders.setVec3("u_viewPos", camera.Position);
+        shader.setMat4("u_projection", projection);
+        shader.setMat4("u_view", view);
+        shader.setVec3("u_viewPos", camera.Position);
         
-        render(map_chunks, shaders, view, model, projection, nIndices, tree_chunks, flower_chunks);
+        render(map_chunks, shader, view, model, projection, nIndices, tree_chunks, flower_chunks);
     }while (glfwGetKey(window,GLFW_KEY_ESCAPE)!=GLFW_PRESS && !glfwWindowShouldClose(window));
     
     for (int i = 0; i < map_chunks.size(); i++) {
@@ -190,9 +204,9 @@ void render(std::vector<GLuint> &map_chunks, Shader &shader, glm::mat4 &view, gl
     currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-    
-    processInput(window, shader);
-    
+	
+	processInput(window);
+	
     glClearColor(0.53, 0.81, 0.92, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
@@ -205,27 +219,38 @@ void render(std::vector<GLuint> &map_chunks, Shader &shader, glm::mat4 &view, gl
         for (int x = 0; x < xMapChunks; x++) {
             // Only render chunk if it's within render distance
             if (std::abs(gridPosX - x) <= chunk_render_distance && (y - gridPosY) <= chunk_render_distance) {
+				
+				// Terrain chunk
                 model = glm::mat4(1.0f);
                 model = glm::translate(model, glm::vec3(-chunkWidth / 2.0 + (chunkWidth - 1) * x, 0.0, -chunkHeight / 2.0 + (chunkHeight - 1) * y));
                 shader.setMat4("u_model", model);
                 
-                // Terrain chunk
                 glBindVertexArray(map_chunks[x + y*xMapChunks]);
                 glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, 0);
                 
-                // Plant chunks
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(-chunkWidth / 2.0 + (chunkWidth - 1) * x, 0.0, -chunkHeight / 2.0 + (chunkHeight - 1) * y));
-                model = glm::scale(model, glm::vec3(MODEL_SCALE));
-                shader.setMat4("u_model", model);
-
-                glEnable(GL_CULL_FACE);
-                glBindVertexArray(flower_chunks[x + y*xMapChunks]);
-                glDrawArraysInstanced(GL_TRIANGLES, 0, 1300, 16);
-
-                glBindVertexArray(tree_chunks[x + y*xMapChunks]);
-                glDrawArraysInstanced(GL_TRIANGLES, 0, 10192, 8);
-                glDisable(GL_CULL_FACE);
+//                // Plant chunks
+//				///Para que está esto??? lo comentado
+//				/* 
+//                model = glm::mat4(1.0f);
+//                model = glm::translate(model, glm::vec3(-chunkWidth / 2.0 + (chunkWidth - 1) * x, 0.0, -chunkHeight / 2.0 + (chunkHeight - 1) * y));
+//				*/
+//                model = glm::scale(model, glm::vec3(MODEL_SCALE));
+//                shader.setMat4("u_model", model);
+//
+//                glEnable(GL_CULL_FACE);
+//                glBindVertexArray(flower_chunks[x + y*xMapChunks]);
+//                glDrawArraysInstanced(GL_TRIANGLES, 0, 1300, 16);
+//
+//                glBindVertexArray(tree_chunks[x + y*xMapChunks]);
+//                glDrawArraysInstanced(GL_TRIANGLES, 0, 10192, 8);
+//                glDisable(GL_CULL_FACE);
+				if(wireframe){
+					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+					
+					glBindVertexArray(map_chunks[x + y*xMapChunks]);
+					glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, 0);
+					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				}
             }
         }
     
@@ -348,6 +373,8 @@ int init() {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+	
+	glfwSetKeyCallback(window, keyboardCallback);
 
     glViewport(0, 0, screenWidth, screenHeight);
 
@@ -361,25 +388,44 @@ int init() {
     return 0;
 }
 
-void processInput(GLFWwindow *window, Shader &shader) {
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+
+
+void keyboardCallback(GLFWwindow* glfw_win, int key, int scancode, int action, int mods) {
+	if (action==GLFW_PRESS) {
+		switch (key) {
+		case 'F': wireframe = !wireframe; break;
+		case 'G': showingFlat = !showingFlat; break;
+		case 'Q': glfwSetWindowShouldClose(window, true); break;
+//		case 'W': camera.ProcessKeyboard(FORWARD, deltaTime); break;
+//		case 'S': camera.ProcessKeyboard(BACKWARD, deltaTime); break;
+//		case 'A': camera.ProcessKeyboard(LEFT, deltaTime); break;
+//		case 'D': camera.ProcessKeyboard(RIGHT, deltaTime); break;
+		}
+	}
+//	if(wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//	else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	
+	if(!showingFlat) (*shaderPtr).setBool("isFlat", true);
+	else  (*shaderPtr).setBool("isFlat", false);
+	(*shaderPtr).use();
+}
+
+void processInput(GLFWwindow *window/*, Shader &shader*/) {
+//    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+//        glfwSetWindowShouldClose(window, true);
     
     // Enable wireframe mode
-    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    
-    // Enable flat mode
-    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
-        shader.use();
-        shader.setBool("isFlat", false);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-    if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS) {
-        shader.use();
-        shader.setBool("isFlat", true);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
+//    if (wireframe){
+//		wireframe = !wireframe;
+//	}
+//    
+//    // Enable flat mode
+//    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
+//		if(!showingFlat) shader.setBool("isFlat", true);
+//		else  shader.setBool("isFlat", false);
+//		showingFlat = !showingFlat;
+//		shader.use();
+//    }
     
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
@@ -389,6 +435,10 @@ void processInput(GLFWwindow *window, Shader &shader) {
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera.ProcessKeyboard(UP, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        camera.ProcessKeyboard(DOWN, deltaTime);
 }
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
