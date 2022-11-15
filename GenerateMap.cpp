@@ -49,8 +49,8 @@ std::vector<float> GenerateMap::generate_noise_map (int xOffset, int yOffset) {
 	std::vector<float> normalizedNoiseValues;
 	std::vector<int> p = get_permutation_vector();
 	
-	float amp  = this->amplitud;
-	float freq = this->frecuencia;
+	float amp  = 1;
+	float freq = 1;
 	float maxPossibleHeight = 0;
 	
 	for (int i = 0; i < octaves; i++) {
@@ -93,18 +93,19 @@ std::vector<float> GenerateMap::generate_noise_map (int xOffset, int yOffset) {
 std::vector<float> GenerateMap::generate_vertices (const std::vector<float> & noise_map) {
 	std::vector<float> v;
 	
-	for (int y = 0; y < chunkHeight + 1; y++)
+	for (int y = 0; y < chunkHeight; y++)
 		for (int x = 0; x < chunkWidth; x++) {
 			v.push_back(x);
 			// Apply cubic easing to the noise
-			float easedNoise = std::pow(noise_map[x + y*chunkWidth] * 1.1, 3);
+			
+			float easedNoise = std::pow(noise_map[x + y*(chunkWidth)] * 1.1, 3);
 			// Scale noise to match meshHeight
 			// Pervent vertex height from being below WATER_HEIGHT
 			v.push_back(std::fmax(easedNoise * meshHeight, WATER_HEIGHT * 0.5 * meshHeight));
 			v.push_back(y);
 	}
 		
-		return v;
+	return v;
 }
 
 std::vector<float> GenerateMap::generate_normals (const std::vector<int> & indices, const std::vector<float> & vertices) {
@@ -181,25 +182,4 @@ std::vector<float> GenerateMap::generate_biome (const std::vector<float> & verti
 	return colors;
 }
 
-///setters de perlin
-
-void GenerateMap::setOctaves (int octaves) {
-	this->octaves = octaves;
-}
-
-void GenerateMap::setMeshHeight (float meshHeight) {
-	this->meshHeight = meshHeight;
-}
-
-void GenerateMap::setNoiseScale (float noiseScale) {
-	this->noiseScale = noiseScale;
-}
-
-void GenerateMap::setPersistence (float persistence) {
-	this->persistence = persistence;
-}
-
-void GenerateMap::setLacunarity (float lacunarity) {
-	this->lacunarity = lacunarity;
-}
 
