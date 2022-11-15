@@ -93,19 +93,18 @@ std::vector<float> GenerateMap::generate_noise_map (int xOffset, int yOffset) {
 std::vector<float> GenerateMap::generate_vertices (const std::vector<float> & noise_map) {
 	std::vector<float> v;
 	
-	for (int y = 0; y < chunkHeight; y++)
+	for (int y = 0; y < chunkHeight + 1; y++)
 		for (int x = 0; x < chunkWidth; x++) {
 			v.push_back(x);
 			// Apply cubic easing to the noise
-			
-			float easedNoise = std::pow(noise_map[x + y*(chunkWidth)] * 1.1, 3);
+			float easedNoise = std::pow(noise_map[x + y*chunkWidth] * 1.1, 3);
 			// Scale noise to match meshHeight
 			// Pervent vertex height from being below WATER_HEIGHT
 			v.push_back(std::fmax(easedNoise * meshHeight, WATER_HEIGHT * 0.5 * meshHeight));
 			v.push_back(y);
 	}
 		
-	return v;
+		return v;
 }
 
 std::vector<float> GenerateMap::generate_normals (const std::vector<int> & indices, const std::vector<float> & vertices) {
