@@ -40,6 +40,7 @@ void setup_instancing(GLuint &VAO, std::vector<GLuint> &plant_chunk, std::string
 GLFWwindow *window;
 
 // Map params
+///por ahora, convalidar que sean los mismos valores que en la clase GenerateMap.h
 float WATER_HEIGHT = 0.05;
 int chunk_render_distance = 6;
 int xMapChunks = 1;
@@ -52,11 +53,11 @@ float originX = (chunkWidth  * xMapChunks) / 2 - chunkWidth / 2;
 float originY = (chunkHeight * yMapChunks) / 2 - chunkHeight / 2;
 
 // Noise params
-int octaves = 8;
-float meshHeight = 255;  // Vertical scaling
-float noiseScale = 128;  // Horizontal scaling
-float persistence = 0.5;
-float lacunarity = 2;
+//int octaves = 8;
+//float meshHeight = 255;  // Vertical scaling
+//float noiseScale = 128;  // Horizontal scaling
+//float persistence = 0.5;
+//float lacunarity = 2;
 
 // Model params
 float MODEL_SCALE = 3;
@@ -77,8 +78,7 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 float currentFrame;
 
-<<<<<<< Updated upstream
-=======
+
 //Showing styles
 bool wireframe = false;
 bool showingFlat = false;
@@ -88,7 +88,7 @@ GLuint VBO, EBO;
 
 Shader *shaderPtr = nullptr;
 
->>>>>>> Stashed changes
+
 int main() {
     // Initalize variables
     glm::mat4 view;
@@ -117,6 +117,11 @@ int main() {
     
 	///Mapa
 	GenerateMap Mapa(xMapChunks, yMapChunks);
+	Mapa.setOctaves(16);
+	Mapa.setMeshHeight(256.f);
+	Mapa.setNoiseScale(512.f);
+	Mapa.setPersistence(0.5f);
+	Mapa.setLacunarity(2.f);
 	
     for (int y = 0; y < yMapChunks; y++)
         for (int x = 0; x < xMapChunks; x++) {
@@ -150,9 +155,9 @@ int main() {
         glDeleteVertexArrays(1, &flower_chunks[i]);
     }
     
-    // TODO VBOs and EBOs aren't being deleted
-//     glDeleteBuffers(3, VBO);
-//     glDeleteBuffers(1, &EBO);
+    // Borrar buffers
+	glDeleteBuffers(3, &VBO);
+    glDeleteBuffers(1, &EBO);
     
     glfwTerminate();
     
@@ -229,7 +234,7 @@ void render(std::vector<GLuint> &map_chunks, Shader &shader, glm::mat4 &view, gl
                 glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, 0);
                 
 //                // Plant chunks
-//				///Para que est· esto??? lo comentado
+//				///Para que est√° esto??? lo comentado
 //				/* 
 //                model = glm::mat4(1.0f);
 //                model = glm::translate(model, glm::vec3(-chunkWidth / 2.0 + (chunkWidth - 1) * x, 0.0, -chunkHeight / 2.0 + (chunkHeight - 1) * y));
@@ -312,7 +317,7 @@ void load_model(GLuint &VAO, std::string filename) {
         }
     }
     
-    GLuint VBO, EBO;
+//    GLuint VBO, EBO;
     
     // Create buffers and arrays
     glGenBuffers(1, &VBO);
@@ -507,7 +512,7 @@ void generate_map_chunk (GenerateMap &Mapa, GLuint & VAO, int xOffset, int yOffs
 	
 	// Bind vertices to VBO
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
-	glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(float), &colors[0], GL_STATIC_DRAW); ///aca deberÌa reemplazarse por textura
+	glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(float), &colors[0], GL_STATIC_DRAW); ///aca deber√≠a reemplazarse por textura
 	
 	
 	// Configure vertex colors attribute

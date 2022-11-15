@@ -49,8 +49,8 @@ std::vector<float> GenerateMap::generate_noise_map (int xOffset, int yOffset) {
 	std::vector<float> normalizedNoiseValues;
 	std::vector<int> p = get_permutation_vector();
 	
-	float amp  = 1;
-	float freq = 1;
+	float amp  = this->amplitud;
+	float freq = this->frecuencia;
 	float maxPossibleHeight = 0;
 	
 	for (int i = 0; i < octaves; i++) {
@@ -182,4 +182,25 @@ std::vector<float> GenerateMap::generate_biome (const std::vector<float> & verti
 	return colors;
 }
 
+///setters de perlin
+
+void GenerateMap::setOctaves (int octaves) {
+	this->octaves = octaves;
+}
+
+void GenerateMap::setMeshHeight (float meshHeight) {
+	this->meshHeight = meshHeight;
+}
+
+void GenerateMap::setNoiseScale (float noiseScale) {
+	this->noiseScale = noiseScale;
+}
+
+void GenerateMap::setPersistence (float persistence) {
+	this->persistence = persistence;
+}
+
+void GenerateMap::setLacunarity (float lacunarity) {
+	this->lacunarity = lacunarity;
+}
 
