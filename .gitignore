@@ -8,6 +8,7 @@
 
 # Librerias (por el momento, dejar comentado)
 # *.dll
+bin/opengl32.dll
 
 # Ejecutable
 *.exe
@@ -17,3 +18,4 @@
 
 #Carpeta de basura
 tmp/*
+
