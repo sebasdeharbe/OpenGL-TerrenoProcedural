@@ -16,6 +16,6 @@ bin/opengl32.dll
 # Zinjai Project (por el momento, dejar comentado)
 # *.zpr
 
-#Carpeta de basura
-tmp/*
+#Carpeta de debug
+tmp/debug_win
 
