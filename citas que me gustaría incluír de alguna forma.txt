@@ -1,0 +1,10 @@
+
+
+Lo que se suele hacer es empezar con una amplitud grande y una frecuencia pequeña y en cada octava ir disminuyendo
+ la amplitud y aumentando la frecuencia en una proporción determinada.
+
+
+Pensemos en el perfil de una montaña. Si la vemos a cierta distancia su curva puede parecernos relativamente suave,
+ pero cuanto más nos acercamos observaremos que para nada la curva es suave, sino que es más como dientes de sierra.
+ Es en esta dirección en la que estamos yendo con nuestro algoritmo.
+

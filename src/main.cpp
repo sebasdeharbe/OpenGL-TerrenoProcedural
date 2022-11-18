@@ -53,7 +53,7 @@ int main() {
 	Shader shader("shaders/texture");
 	
 	// load model and assign texture
-	auto models = Model::load("malla16.16",Model::fKeepGeometry);
+	auto models = Model::load("mallaRefinada",Model::fKeepGeometry);
 	Model &plane = models[0];
 	
 	std::vector<glm::vec3> vertices;
