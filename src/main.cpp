@@ -58,11 +58,13 @@ int main() {
 	
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> coords;
+	
 	modifyMesh(plane.geometry.positions,vertices,coords);
+	
 	
 	plane.buffers.updatePositions(vertices,true);
 	plane.buffers.updateTexCoords(coords,true);
-	plane.texture = Texture("models/elevation_gradient.png",true,true);
+	plane.texture = Texture("models/elevation_gradient_2.png",true,true);
 	
 	do {
 		
