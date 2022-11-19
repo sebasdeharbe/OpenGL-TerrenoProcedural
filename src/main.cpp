@@ -24,7 +24,7 @@ typedef struct {
 	int fact = 1; 					//escala de ruido
 	int freq = 1;			 		//frecuencia
 	int amp = 1;					//amplitud
-	int seed = 1;           		//seed para el srand()
+	int seed = 0;           		//seed para el srand()
 	float persistency = 2.f;       	//
 	float lacunarity = 0.5f;       	//
 //	float 
@@ -38,6 +38,13 @@ float interpolacionBilineal(float x1,float y1,float x2,float y2, float v1,float 
 	float sumV4=fabs((tx-x2)*(ty-y2))*v1;
 	float areaTotal=(x2-x1)*(y2-y1);
 	return (sumV1+sumV2+sumV3+sumV4)/areaTotal;
+}
+
+float interpolacionLineal(float x1,float x2, float v1,float v2, float tx){
+	float sumV1=fabs(tx-x1)*v2;
+	float sumV2=fabs(tx-x2)*v1;
+	float total=fabs(x2-x1);
+	return (sumV1+sumV2)/total;
 }
 
 vector<vector<float>> createNoiseMap(){
@@ -80,15 +87,6 @@ vector<vector<float>> createNoiseMap(){
 		
 	}
 	
-	
-//	
-//	for(int i=0;i<noiseMap.size();i++) { 
-//		for(int j=0;j<noiseMap[i].size();j++) { 
-//			cout<<noiseMap[i][j]<<" ";
-//		}
-//		cout<<endl;
-//	}
-	
 	return noiseMap;
 	
 }
@@ -109,22 +107,14 @@ void modifyMesh(const std::vector<glm::vec3> &v,std::vector<glm::vec3> &vertices
 		if(v[i].z<zMin) zMin = v[i].z;
 		if(v[i].z>zMax) zMax = v[i].z;
 	}
-//	
-//	cout<<xMin<<"  "<<xMax<<endl;
-//	cout<<zMin<<"  "<<zMax<<endl<<endl<<endl;
-//	
 	
 	float deltaX = abs(xMax - xMin);
 	float deltaZ = abs(zMax - zMin);
 	
 	for(int i=0;i<v.size();i++) { 
 		
-//		cout<<"x: "<<v[i].x<<"   z:"<<v[i].z<<endl;
-		
 		float xRuido = ((v[i].x-(float)xMin)/((float)deltaX)) * (float)parametros.tamanioMapa;
 		float zRuido = ((v[i].z-(float)zMin)/((float)deltaZ)) * (float)parametros.tamanioMapa;
-		
-//		cout<<xRuido<<"  "<<zRuido<<endl;
 		
 		float xInterpolacionMin = floor(xRuido);
 		float xInterpolacionMax = ceil(xRuido);
@@ -132,17 +122,23 @@ void modifyMesh(const std::vector<glm::vec3> &v,std::vector<glm::vec3> &vertices
 		float zInterpolacionMin = floor(zRuido);
 		float zInterpolacionMax = ceil(zRuido);
 		
-//		cout<<xInterpolacionMax<<" "<<xInterpolacionMin<<" "<<zInterpolacionMax<<" "<<zInterpolacionMin<<endl;
+		float valorInterpolado = 0;
+		if(xInterpolacionMax == xInterpolacionMin){ //Si el punto a interpolar se encuentra perfectamente entre 2 puntos del mapa de ruido se hace una interpolación lineal directamente.
+			if(zInterpolacionMax == zInterpolacionMin) valorInterpolado = noiseMap[xInterpolacionMin][zInterpolacionMin]; //Si el punto se encuentra donde hay un valor en el mapa de ruido nisiquiera se interpola nada. Tomamos el valor y listo
+			else valorInterpolado = interpolacionLineal(zInterpolacionMin, zInterpolacionMax, noiseMap[xInterpolacionMin][zInterpolacionMin], noiseMap[xInterpolacionMin][zInterpolacionMax], zRuido);
+		}else if(zInterpolacionMax == zInterpolacionMin){
+			valorInterpolado = interpolacionLineal(xInterpolacionMin, xInterpolacionMax, noiseMap[xInterpolacionMin][zInterpolacionMax], noiseMap[xInterpolacionMax][zInterpolacionMax], xRuido);
+		}else{
+			valorInterpolado = interpolacionBilineal(xInterpolacionMin, zInterpolacionMin, xInterpolacionMax, zInterpolacionMax,
+													noiseMap[xInterpolacionMin][zInterpolacionMin], noiseMap[xInterpolacionMax][zInterpolacionMin],
+													noiseMap[xInterpolacionMin][zInterpolacionMax], noiseMap[xInterpolacionMax][zInterpolacionMax],
+													xRuido, zRuido);
+		}
 		
-		float valorInterpolado = interpolacionBilineal(xInterpolacionMin, zInterpolacionMin, xInterpolacionMax, zInterpolacionMax,
-														noiseMap[xInterpolacionMin][zInterpolacionMin], noiseMap[xInterpolacionMax][zInterpolacionMin],
-														noiseMap[xInterpolacionMin][zInterpolacionMax], noiseMap[xInterpolacionMax][zInterpolacionMax],
-														xRuido, zRuido);
 		
-//		cout<<valorInterpolado<<endl<<endl;
 		vertices[i] = glm::vec3(v[i].x,valorInterpolado,v[i].z);
 		
-		float s = min(vertices[i].y*2.f,1.f);
+		float s = min(vertices[i].y*2.f,0.999f);
 		float t = 0.1f;
 		coords[i] = glm::vec2(s,t);
 		
@@ -177,7 +173,7 @@ int main() {
 	
 	plane.buffers.updatePositions(vertices,true);
 	plane.buffers.updateTexCoords(coords,true);
-	plane.texture = Texture("models/elevation_gradient.png",true,true);
+	plane.texture = Texture("models/elevation_gradient_3.png",true,true);
 	
 	do {
 		
