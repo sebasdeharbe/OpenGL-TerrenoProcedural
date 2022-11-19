@@ -20,11 +20,11 @@ using namespace std;
 
 typedef struct {
 	int tamanioMapa = 31;
-	int numeroDeOctavas = 8;  		//numero de octavas
+	int numeroDeOctavas = 5;  		//numero de octavas
 	int fact = 1; 					//escala de ruido
 	int freq = 1;			 		//frecuencia
 	int amp = 1;					//amplitud
-	int seed = 0;           		//seed para el srand()
+	int seed = 65;           		//seed para el srand()
 	float persistency = 2.f;       	//
 	float lacunarity = 0.5f;       	//
 //	float 
@@ -51,22 +51,23 @@ vector<vector<float>> createNoiseMap(){
 	srand(parametros.seed); 
 	vector<vector<float>> noiseMap(parametros.tamanioMapa+1,vector<float>(parametros.tamanioMapa+1));
 	
-	//armar la primera octava
-	int tamanioSubdivision = parametros.tamanioMapa/parametros.freq;
+	
+	float frecuencia = parametros.freq;
+	float amplitud = parametros.amp;
+	int tamanioSubdivision = parametros.tamanioMapa/frecuencia;
 	
 //	if(tamanioSubdivision<1) tamanioSubdivision=1; //para que no rompa con cualca frecuecia.
 	
-	while(parametros.tamanioMapa%tamanioSubdivision){
-//		--tamanioSubdivision; //esto verifica que la frecuencia sea potencia de 2. 
-		cout<<"rompe el tamanio de subdiv";
-	}
+	//tamanioSubdivision; //esto verifica que la frecuencia sea potencia de 2. 
+	while(parametros.tamanioMapa%tamanioSubdivision) cout<<endl<<"Rompe el tamanio de subdiv"<<endl<<endl;
 	
+	///PRIMERA OCTAVA
 	for(int i=0;i<=parametros.tamanioMapa;i+=tamanioSubdivision){
 		
 		for(int j=0;j<=parametros.tamanioMapa;j+=tamanioSubdivision){
 			
 			//Crear nodos
-			noiseMap[i][j] = parametros.amp*((float)rand()/RAND_MAX);
+			noiseMap[i][j] = amplitud*((float)rand()/RAND_MAX);
 			
 			//Interpolar puntos interiores
 			if(i>=tamanioSubdivision && j>=tamanioSubdivision){
@@ -82,6 +83,50 @@ vector<vector<float>> createNoiseMap(){
 					}
 				} 
 				
+			}
+		}
+		
+	}
+	
+	for(int o=1;o<parametros.numeroDeOctavas;o++) { 
+		
+		frecuencia *= parametros.persistency;
+		amplitud *= parametros.lacunarity;
+		tamanioSubdivision = parametros.tamanioMapa/frecuencia;
+		
+		vector<vector<float>> nuevaOctava(parametros.tamanioMapa+1,vector<float>(parametros.tamanioMapa+1));
+		
+		
+		
+		for(int i=0;i<=parametros.tamanioMapa;i+=tamanioSubdivision){
+			
+			for(int j=0;j<=parametros.tamanioMapa;j+=tamanioSubdivision){
+				
+				//Crear nodos
+				nuevaOctava[i][j] = amplitud*((float)rand()/RAND_MAX);
+				
+				//Interpolar puntos interiores
+				if(i>=tamanioSubdivision && j>=tamanioSubdivision){
+					
+					for(int a=i-tamanioSubdivision; a<=i; a++){
+						for(int b=j-tamanioSubdivision; b<=j; b++){
+							
+							int x1=i-tamanioSubdivision;
+							int x2=i;
+							int y1=j-tamanioSubdivision;
+							int y2=j;
+							nuevaOctava[a][b] = interpolacionBilineal(x1, y1, x2, y2, nuevaOctava[x1][y1], nuevaOctava[x2][y1], nuevaOctava[x1][y2], nuevaOctava[x2][y2], a, b);
+						}
+					} 
+					
+				}
+			}
+			
+		}
+		
+		for(int m=0; m<noiseMap.size();m++) { 
+			for(int n=0; n<noiseMap[m].size();n++) { 
+				noiseMap[m][n] += nuevaOctava[m][n];
 			}
 		}
 		
@@ -135,10 +180,10 @@ void modifyMesh(const std::vector<glm::vec3> &v,std::vector<glm::vec3> &vertices
 													xRuido, zRuido);
 		}
 		
+		vertices[i] = glm::vec3(v[i].x,valorInterpolado*0.3f,v[i].z);
 		
-		vertices[i] = glm::vec3(v[i].x,valorInterpolado,v[i].z);
-		
-		float s = min(vertices[i].y*2.f,0.999f);
+		float s = min(vertices[i].y*2.f-0.2f,0.999f);
+		if(s<0.001f)s=0.001f;
 		float t = 0.1f;
 		coords[i] = glm::vec2(s,t);
 		
