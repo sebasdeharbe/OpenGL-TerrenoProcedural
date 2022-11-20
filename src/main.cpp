@@ -212,6 +212,7 @@ vector<vector<float>> createNoiseMap(){
 	for(int o=1;o<parametros.numeroDeOctavas;o++) { 
 		frecuencia *= parametros.persistency;
 		amplitud *= parametros.lacunarity;
+		amplitud -= amplitud/2; //corrección amplitud
 		tamanioSubdivision = parametros.tamanioMapa/frecuencia;
 		if(tamanioSubdivision<1) tamanioSubdivision=1; //NO DEBE EXISTIR UNA SUBDIVISION MENOR A 1
 		cout<<"OCTAVA: "<<o<<endl<<"Amplitud: "<<amplitud<<" - Frecuencia "<<frecuencia<<"Subdivision: "<<tamanioSubdivision<<endl;
