@@ -177,7 +177,7 @@ void interpolarAltura(int i, float xMin, float xMax, float zMin, float zMax, con
 	float zInterMax = ceil(zRuido);
 	
 	
-	if(xInterMax == xInterMin){ //Si el punto a interpolar se encuentra perfectamente entre 2 puntos del mapa de ruido se hace una interpolaci�n lineal directamente.
+	if(xInterMax == xInterMin){ //Si el punto a interpolar se encuentra perfectamente entre 2 puntos del mapa de ruido se hace una interpolaciï¿½n lineal directamente.
 		if(zInterMax == zInterMin){//Si el punto se encuentra donde hay un valor en el mapa de ruido nisiquiera se interpola nada. Tomamos el valor y listo
 			valorInterpolado = noiseMap[xInterMin][zInterMin]; 
 			//			glm::vec3 v1 = glm::vec3((float)xInterMax, (float)zInterMin, noiseMap[xInterMax][zInterMin]) - glm::vec3((float)xInterMin, (float)zInterMin, noiseMap[xInterMin][zInterMin]);
