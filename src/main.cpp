@@ -22,7 +22,7 @@ using namespace std;
 ///GLOBALES
 typedef struct {
 	int tamanioMapa = 32;
-	int numeroDeOctavas = 5;  		//numero de octavas
+	int numeroDeOctavas = 8;  		//numero de octavas
 	int fact = 1; 					//escala de ruido
 	int freq = 1;			 		//frecuencia
 	int amp = 1;					//amplitud
@@ -96,7 +96,8 @@ int main() {
 			}
 			if(ImGui::InputInt("Semilla Rand",&parametros.seed)) reload = true;
 			if(ImGui::InputInt("Frecuencia", &parametros.freq)){
-				if(parametros.freq<0) parametros.freq = 0; //M�nimo debe existir 1 octava.
+				if(parametros.freq<1) parametros.freq = 1; //M�nimo debe existir 1 octava.
+				
 				reload = true;
 			}
 			if(ImGui::InputInt("Amplitud", &parametros.amp)){
@@ -109,6 +110,17 @@ int main() {
 			}
 			if(ImGui::SliderFloat("Persistencia", &parametros.persistency, 1, 10)) reload = true;
 			if(ImGui::SliderFloat("Lacunarity", &parametros.lacunarity, 0, 1)) reload = true;
+			if (ImGui::Button("Reset")) {
+				parametros.tamanioMapa = 32;
+				parametros.numeroDeOctavas = 8;
+				parametros.fact = 1;
+				parametros.freq = 1;
+				parametros.amp = 1;
+				parametros.seed = 0;
+				parametros.persistency = 2.f; 
+				parametros.lacunarity = 0.5f; 
+				reload = true;
+			}
 		});
 		
 		// finish frame
@@ -189,6 +201,7 @@ vector<vector<float>> createNoiseMap(){
 	float frecuencia = parametros.freq;
 	float amplitud = parametros.amp;
 	int tamanioSubdivision = parametros.tamanioMapa/frecuencia;
+	
 	if(tamanioSubdivision<1) tamanioSubdivision=1; //NO DEBE EXISTIR UNA SUBDIVISION MENOR A 1
 	cout<<"OCTAVA: "<<1<<endl<<"Amplitud: "<<amplitud<<" - Frecuencia "<<frecuencia<<"Subdivision: "<<tamanioSubdivision<<endl;
 	
@@ -196,7 +209,7 @@ vector<vector<float>> createNoiseMap(){
 	generarOctava(noiseMap, amplitud, tamanioSubdivision);
 	
 	///SEGUNDA Y DEM�S OCTAVAS
-	for(int o=2;o<=parametros.numeroDeOctavas;o++) { 
+	for(int o=1;o<parametros.numeroDeOctavas;o++) { 
 		frecuencia *= parametros.persistency;
 		amplitud *= parametros.lacunarity;
 		tamanioSubdivision = parametros.tamanioMapa/frecuencia;
