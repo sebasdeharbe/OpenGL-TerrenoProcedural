@@ -7,7 +7,7 @@
 #include "Shaders.hpp"
 
 // window and view
-int win_width = 800, win_height = 600;
+int win_width = 1000, win_height = 750;
 glm::vec3 view_target = {0.f,0.f,0.f}, view_pos = {0.f,0.f,3.f};
 float model_angle = 0.f, view_angle = 0.3f, view_fov = 45.f;
 bool use_perspective = true;
