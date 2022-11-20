@@ -25,9 +25,9 @@ typedef struct {
 	int freq = 1;			 		//frecuencia
 	int amp = 1;					//amplitud
 	int seed = 0;           		//seed para el srand()
-	float persistency = 2.f;       	//
-	float lacunarity = 0.5f;       	//
-//	float 
+	float persistency = 2.f;       	//factor de "conservación" de la frecuencia
+	float lacunarity = 0.5f;       	//factor de "desvanecimiento" de la amplitud
+ 
 }sets;
 sets parametros;
 
