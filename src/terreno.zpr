@@ -19,7 +19,11 @@ current_source=main.cpp
 path_char=\
 [source]
 path=main.cpp
+<<<<<<< Updated upstream
 cursor=131:70
+=======
+cursor=31:1
+>>>>>>> Stashed changes
 open=true
 [source]
 path=..\common\utils\ObjMesh.cpp
