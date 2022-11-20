@@ -196,7 +196,7 @@ vector<vector<float>> createNoiseMap(){
 	generarOctava(noiseMap, amplitud, tamanioSubdivision);
 	
 	///SEGUNDA Y DEM�S OCTAVAS
-	for(int o=1;o<=parametros.numeroDeOctavas;o++) { 
+	for(int o=2;o<=parametros.numeroDeOctavas;o++) { 
 		frecuencia *= parametros.persistency;
 		amplitud *= parametros.lacunarity;
 		tamanioSubdivision = parametros.tamanioMapa/frecuencia;
