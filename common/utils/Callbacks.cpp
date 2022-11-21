@@ -45,7 +45,7 @@ void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos) {
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 	if (Window::IsImGuiEnabled(window) and ImGui::GetIO().WantCaptureMouse) return;
-	if (button==GLFW_MOUSE_BUTTON_MIDDLE) {
+	if (button==GLFW_MOUSE_BUTTON_MIDDLE or button==GLFW_MOUSE_BUTTON_LEFT) {
 		if(action == GLFW_RELEASE) mouse_action = MouseAction::None;
 		else {
 			if      (mods&GLFW_MOD_CONTROL)   mouse_action = MouseAction::Zoom;
