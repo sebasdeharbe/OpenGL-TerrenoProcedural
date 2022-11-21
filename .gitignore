@@ -19,3 +19,4 @@ bin/opengl32.dll
 #Carpeta de debug
 tmp/debug_win
 
+*.zpr
