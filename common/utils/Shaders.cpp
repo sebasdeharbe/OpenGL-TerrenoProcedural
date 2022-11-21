@@ -171,9 +171,9 @@ bool Shader::setUniform(const char *name, const glm::mat4 &m) {
 }
 
 void Shader::setMaterial (const Material &mat) {
-	setUniform("diffuseColor", mat.kd);
+	setUniform("diffuseColor", 1);
 	setUniform("specularColor", mat.ks);
-	setUniform("ambientColor", mat.ka);
+	setUniform("ambientColor", 0);
 	setUniform("emissionColor", mat.ke);
 	setUniform("opacity", mat.opacity);
 	setUniform("shininess", mat.shininess);
