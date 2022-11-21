@@ -29,7 +29,7 @@ typedef struct {
 	int seed = 0;           		//seed para el srand()
 	float persistency = 2.f;       	//factor de "conservaci?n" de la frecuencia
 	float lacunarity = 0.5f;       	//factor de "desvanecimiento" de la amplitud
-	
+	float nivelMar = 0.4f;       	//esto sube el nivel del mar
 }sets;
 sets parametros;
 bool reload = true; 
@@ -40,10 +40,11 @@ vector<vector<float>> createNoiseMap();
 void generarOctava(vector<vector<float>> &nuevaOctava, float amplitud, int tamanioSubdivision);
 
 //Modificar Malla
-void modifyMesh(const std::vector<glm::vec3> &v, std::vector<glm::vec3> &vertices, std::vector<glm::vec2> &coords, vector<vector<float>> &noiseMap);
+void modifyMesh(const std::vector<glm::vec3> &v, const std::vector<glm::vec3> &n, std::vector<glm::vec3> &vertices, std::vector<glm::vec3> &normals, std::vector<glm::vec2> &coords, vector<vector<float>> &noiseMap);
 
 //Auxiliares
-float interpolacionBilineal(float x1,float y1,float x2,float y2, float v1,float v2,float v3,float v4,float tx,float ty);
+float interpolacionBilineal(float x1,float z1,float x2,float z2, float v1,float v2,float v3,float v4,float tx,float ty);
+glm::vec3 interpolacionBilinealParanormal(float x1,float z1,float x2,float z2, float v1,float v2,float v3,float v4,float tx,float ty);
 float interpolacionLineal(float x1,float x2, float v1,float v2, float tx);
 void interpolarAltura(int i, float xMin, float xMax, float zMin, float zMax, const std::vector<glm::vec3> &v, vector<vector<float>> &noiseMap, float &valorInterpolado, glm::vec3 &normal );
 
@@ -70,14 +71,16 @@ int main() {
 	}
 	
 	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec3> normales;
 	std::vector<glm::vec2> coords;
 	
 	do {
 		if(reload){
 			vector<vector<float>> noiseMap = createNoiseMap();
-			modifyMesh(plane.geometry.positions,vertices,coords, noiseMap);
+			modifyMesh(plane.geometry.positions, plane.geometry.normals,vertices, normales,coords, noiseMap);
 			plane.buffers.updatePositions(vertices,true);
 			plane.buffers.updateTexCoords(coords,true);
+			plane.buffers.updateNormals(normales,true); //comentar esta
 			plane.texture = Texture("models/elevation_gradient_3.png",false,false);
 			reload = false;
 			
@@ -87,7 +90,7 @@ int main() {
 		
 		shader.use();
 		setMatrixes(shader);
-		shader.setLight(glm::vec4{2.f,-2.f,-4.f,0.f}, glm::vec3{1.f,1.f,1.f}, 0.05f);
+		shader.setLight(glm::vec4{0.f,-8.f,0.f,0.f}, glm::vec3{1.f,1.f,1.f}, 0.15f);
 		for(Model &mod : models) {
 			mod.texture.bind();
 			shader.setMaterial(mod.material);
@@ -125,6 +128,7 @@ int main() {
 			}
 			if(ImGui::SliderFloat("Persistencia", &parametros.persistency, 1, 10)) reload = true;
 			if(ImGui::SliderFloat("Lacunarity", &parametros.lacunarity, 0, 1)) reload = true;
+			if(ImGui::SliderFloat("Nivel del mar", &parametros.nivelMar, 0, 2)) reload = true;
 			if (ImGui::Button("Reset")) {
 				parametros.tamanioMapa = 32;
 				parametros.numeroDeOctavas = 8;
@@ -134,6 +138,7 @@ int main() {
 				parametros.seed = 0;
 				parametros.persistency = 2.f; 
 				parametros.lacunarity = 0.5f; 
+				parametros.nivelMar = 0.4f; 
 				reload = true;
 			}
 		});
@@ -146,14 +151,31 @@ int main() {
 }
 
 ///IMPLEMENTACI?N FUNCIONES
-float interpolacionBilineal(float x1,float y1,float x2,float y2, float v1,float v2,float v3,float v4,float tx,float ty){
-	float sumV1=fabs((tx-x1)*(ty-y1))*v4;
-	float sumV2=fabs((tx-x2)*(ty-y1))*v3;
-	float sumV3=fabs((tx-x1)*(ty-y2))*v2;
-	float sumV4=fabs((tx-x2)*(ty-y2))*v1;
-	float areaTotal=(x2-x1)*(y2-y1);
+float interpolacionBilineal(float x1,float z1,float x2,float z2, float v1,float v2,float v3,float v4,float tx,float ty){
+	float sumV1=fabs((tx-x1)*(ty-z1))*v4;
+	float sumV2=fabs((tx-x2)*(ty-z1))*v3;
+	float sumV3=fabs((tx-x1)*(ty-z2))*v2;
+	float sumV4=fabs((tx-x2)*(ty-z2))*v1;
+	float areaTotal=(x2-x1)*(z2-z1);
 	return (sumV1+sumV2+sumV3+sumV4)/areaTotal;
 }	
+	
+glm::vec3 interpolacionBilinealParanormal(float x1,float z1,float x2,float z2, float v1,float v2,float v3,float v4,float tx,float ty){
+	
+	glm::vec3 n1 = glm::normalize(glm::cross( (glm::vec3(x1,v2,z2) - glm::vec3(x1,v1,z1)) , (glm::vec3(x2,v3,z1) - glm::vec3(x1,v1,z1))));
+	glm::vec3 n2 = glm::normalize(glm::cross( (glm::vec3(x1,v1,z1) - glm::vec3(x2,v2,z1)) , (glm::vec3(x2,v4,z2) - glm::vec3(x2,v2,z1))));
+	glm::vec3 n3 = glm::normalize(glm::cross( (glm::vec3(x2,v4,z2) - glm::vec3(x1,v3,z2)) , (glm::vec3(x1,v1,z1) - glm::vec3(x1,v3,z2))));
+	glm::vec3 n4 = glm::normalize(glm::cross( (glm::vec3(x2,v3,z1) - glm::vec3(x2,v4,z2)) , (glm::vec3(x1,v2,z2) - glm::vec3(x2,v4,z2))));
+	
+	
+	glm::vec3 sumV1=fabs((tx-x1)*(ty-z1))*n4;
+	glm::vec3 sumV2=fabs((tx-x2)*(ty-z1))*n3;
+	glm::vec3 sumV3=fabs((tx-x1)*(ty-z2))*n2;
+	glm::vec3 sumV4=fabs((tx-x2)*(ty-z2))*n1;
+	float areaTotal=(x2-x1)*(z2-z1);
+	return (sumV1+sumV2+sumV3+sumV4)/areaTotal;
+}	
+	
 	
 float interpolacionLineal(float x1,float x2, float v1,float v2, float tx){
 	float sumV1=fabs(tx-x1)*v2;
@@ -180,30 +202,37 @@ void interpolarAltura(int i, float xMin, float xMax, float zMin, float zMax, con
 	if(xInterMax == xInterMin){ //Si el punto a interpolar se encuentra perfectamente entre 2 puntos del mapa de ruido se hace una interpolaciï¿½n lineal directamente.
 		if(zInterMax == zInterMin){//Si el punto se encuentra donde hay un valor en el mapa de ruido nisiquiera se interpola nada. Tomamos el valor y listo
 			valorInterpolado = noiseMap[xInterMin][zInterMin]; 
-			//			glm::vec3 v1 = glm::vec3((float)xInterMax, (float)zInterMin, noiseMap[xInterMax][zInterMin]) - glm::vec3((float)xInterMin, (float)zInterMin, noiseMap[xInterMin][zInterMin]);
-			//			normal = glm::cross(v1,glm::vec3(0.f,0.f,1.f));
+			normal = glm::vec3(0.f,1.f,0.f);
 		}
 		else{
 			valorInterpolado = interpolacionLineal(zInterMin, zInterMax, noiseMap[xInterMin][zInterMin], noiseMap[xInterMin][zInterMax], zRuido);
 			
 			glm::vec3 v1 = glm::vec3((float)xInterMin, (float)noiseMap[xInterMin][zInterMax], (float)zInterMax) - glm::vec3((float)xInterMin, (float)noiseMap[xInterMin][zInterMin], (float)zInterMin);
-			cout<<v1.x<<"  ,"<<v1.y<<"  ,"<<v1.z<<endl;
-			normal = glm::normalize(glm::cross(v1,glm::vec3(0.f,0.f,1.f)));
-			cout<<normal.x<<"  ,"<<normal.y<<"  ,"<<normal.z<<endl<<endl<<endl;
+			
+			normal = glm::normalize(glm::cross(v1,glm::vec3(1.f,0.f,0.f)));
+			normal = glm::vec3(0.f,1.f,0.f);
 		}
 	}else if(zInterMax == zInterMin){
 		valorInterpolado = interpolacionLineal(xInterMin, xInterMax, noiseMap[xInterMin][zInterMax], noiseMap[xInterMax][zInterMax], xRuido);
 		
 		glm::vec3 v1 = glm::vec3((float)xInterMax, noiseMap[xInterMax][zInterMin], (float)zInterMin) - glm::vec3((float)xInterMin, noiseMap[xInterMin][zInterMin], (float)zInterMin);
-		normal = glm::cross(v1,glm::vec3(0.f,0.f,1.f));
+		normal = glm::normalize(glm::cross(v1,glm::vec3(0.f,0.f,-1.f)));
+		normal = glm::vec3(0.f,1.f,0.f);
 		
 	}else{
 		valorInterpolado = interpolacionBilineal(xInterMin, zInterMin, xInterMax, zInterMax,
 												 noiseMap[xInterMin][zInterMin], noiseMap[xInterMax][zInterMin],
 													 noiseMap[xInterMin][zInterMax], noiseMap[xInterMax][zInterMax],
 														 xRuido, zRuido);
+		
+		normal = interpolacionBilinealParanormal(xInterMin, zInterMin, xInterMax, zInterMax,
+									   noiseMap[xInterMin][zInterMin], noiseMap[xInterMax][zInterMin],
+										   noiseMap[xInterMin][zInterMax], noiseMap[xInterMax][zInterMax],
+											   xRuido, zRuido);
+		
+//		cout<<"( "<<normal.x<<", "<<normal.y<<", "<<normal.z<<")"<<endl;
+//		normal = glm::vec3(0.f,1.f,0.f);
 	}
-	
 }
 void generarOctava(vector<vector<float>> &nuevaOctava, float amplitud, int tamanioSubdivision){
 	for(int i=0;i<=parametros.tamanioMapa;i+=tamanioSubdivision){
@@ -216,9 +245,9 @@ void generarOctava(vector<vector<float>> &nuevaOctava, float amplitud, int taman
 					for(int b=j-tamanioSubdivision; b<=j; b++){
 						int x1=i-tamanioSubdivision;
 						int x2=i;
-						int y1=j-tamanioSubdivision;
-						int y2=j;
-						nuevaOctava[a][b] = interpolacionBilineal(x1, y1, x2, y2, nuevaOctava[x1][y1], nuevaOctava[x2][y1], nuevaOctava[x1][y2], nuevaOctava[x2][y2], a, b);
+						int z1=j-tamanioSubdivision;
+						int z2=j;
+						nuevaOctava[a][b] = interpolacionBilineal(x1, z1, x2, z2, nuevaOctava[x1][z1], nuevaOctava[x2][z1], nuevaOctava[x1][z2], nuevaOctava[x2][z2], a, b);
 					}
 				} 
 			}
@@ -234,7 +263,7 @@ vector<vector<float>> createNoiseMap(){
 	int tamanioSubdivision = parametros.tamanioMapa/frecuencia;
 	
 	if(tamanioSubdivision<1) tamanioSubdivision=1; //NO DEBE EXISTIR UNA SUBDIVISION MENOR A 1
-	cout<<"OCTAVA: "<<1<<endl<<"Amplitud: "<<amplitud<<" - Frecuencia "<<frecuencia<<"Subdivision: "<<tamanioSubdivision<<endl;
+//	cout<<"OCTAVA: "<<1<<endl<<"Amplitud: "<<amplitud<<" - Frecuencia "<<frecuencia<<"Subdivision: "<<tamanioSubdivision<<endl;
 	
 	///PRIMERA OCTAVA
 	generarOctava(noiseMap, amplitud, tamanioSubdivision);
@@ -246,7 +275,7 @@ vector<vector<float>> createNoiseMap(){
 		
 		tamanioSubdivision = parametros.tamanioMapa/frecuencia;
 		if(tamanioSubdivision<1) tamanioSubdivision=1; //NO DEBE EXISTIR UNA SUBDIVISION MENOR A 1
-		cout<<"OCTAVA: "<<o<<endl<<"Amplitud: "<<amplitud<<" - Frecuencia "<<frecuencia<<"Subdivision: "<<tamanioSubdivision<<endl;
+//		cout<<"OCTAVA: "<<o<<endl<<"Amplitud: "<<amplitud<<" - Frecuencia "<<frecuencia<<"Subdivision: "<<tamanioSubdivision<<endl;
 		
 		vector<vector<float>> nuevaOctava(parametros.tamanioMapa+1,vector<float>(parametros.tamanioMapa+1));
 		generarOctava(nuevaOctava, amplitud, tamanioSubdivision);
@@ -259,9 +288,10 @@ vector<vector<float>> createNoiseMap(){
 	}
 	return noiseMap;
 }
-void modifyMesh(const std::vector<glm::vec3> &v, std::vector<glm::vec3> &vertices, std::vector<glm::vec2> &coords, vector<vector<float>> &noiseMap) {
+void modifyMesh(const std::vector<glm::vec3> &v, const std::vector<glm::vec3> &n, std::vector<glm::vec3> &vertices, std::vector<glm::vec3> &normals, std::vector<glm::vec2> &coords, vector<vector<float>> &noiseMap) {
 	
 	vertices.resize(v.size());
+	normals.resize(v.size());
 	coords.resize(v.size());
 	
 	float xMin = v[0].x;
@@ -282,9 +312,10 @@ void modifyMesh(const std::vector<glm::vec3> &v, std::vector<glm::vec3> &vertice
 	for(int i=0;i<v.size();i++) { 
 		interpolarAltura(i, xMin, xMax, zMin, zMax, v, noiseMap, valorInterpolado, normal); //Saqu? toda la interpolaci?n a una funci?n
 		
-		vertices[i] = glm::vec3(v[i].x,valorInterpolado*0.3f,v[i].z);
+		vertices[i] = glm::vec3(v[i].x,valorInterpolado-parametros.nivelMar,v[i].z);
+		normals[i] = normal;
 		
-		float s = vertices[i].y*2.f-0.2f;
+		float s = vertices[i].y / (parametros.amp);
 		if(s<0.001f)s=0.001f;
 		if(s>0.999f)s=0.999f;
 		float t = 0.5f;
