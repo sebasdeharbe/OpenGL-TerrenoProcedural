@@ -26,5 +26,9 @@ void setCommonCallbacks(GLFWwindow* window);
 class Shader;
 void setMatrixes(Shader &shader);
 
+glm::vec3 getView_pos();
+//glm::vec4 get_view_matrix();
+//glm::vec4 get_projection_matrix();
+
 #endif
 

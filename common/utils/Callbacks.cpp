@@ -45,11 +45,11 @@ void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos) {
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 	if (Window::IsImGuiEnabled(window) and ImGui::GetIO().WantCaptureMouse) return;
-	if (button==GLFW_MOUSE_BUTTON_LEFT) {
+	if (button==GLFW_MOUSE_BUTTON_MIDDLE) {
 		if(action == GLFW_RELEASE) mouse_action = MouseAction::None;
 		else {
-			if      (mods&GLFW_MOD_SHIFT)   mouse_action = MouseAction::Zoom;
-			else if (mods&GLFW_MOD_CONTROL) mouse_action = MouseAction::Pan;
+			if      (mods&GLFW_MOD_CONTROL)   mouse_action = MouseAction::Zoom;
+			else if (mods&GLFW_MOD_SHIFT) mouse_action = MouseAction::Pan;
 			else if (not mods)              mouse_action = MouseAction::Rotate;
 		}
 	}
@@ -79,5 +79,20 @@ void setCommonCallbacks(GLFWwindow * window) {
 void setMatrixes(Shader &shader) {
 	auto ms = common_callbacks::getMatrixes();
 	shader.setMatrixes(ms[0],ms[1],ms[2]);
+
 }
+glm::vec3 getView_pos(){
+	return view_pos;
+}
+	
+//glm::vec4 get_view_matrix(){
+//	glm::vec4 mat = glm::lookAt( view_pos, view_target, glm::vec3{0.f,1.f,0.f} )
+//	return mat;
+//}
+//	
+//glm::vec4 get_projection_matrix(){
+//	return use_perspective
+//		? glm::perspective( glm::radians(view_fov), float(win_width)/float(win_height), 0.1f, 100.f )
+//		: glm::ortho(-1.5f,+1.5f,-1.5f,+1.5f,-100.f,+100.f);
+//}
 
