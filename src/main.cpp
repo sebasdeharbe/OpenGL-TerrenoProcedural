@@ -64,10 +64,10 @@ int main() {
 	auto models = Model::load("mallaRefinada",Model::fKeepGeometry);
 	Model &plane = models[0];
 	
-	vector<Model> yuyos(30);
-	for(int i=0;i<30;i++) { 
+	vector<Model> yuyos(50);
+	vector<glm::mat4> yuyosMats(50);
+	for(int i=0;i<yuyos.size();i++) { 
 		yuyos[i] = Model::loadSingle("pasto",Model::fKeepGeometry);
-		yuyos[i].buffers.updatePositions(yuyos[i].geometry.positions,true);
 	}
 	
 	std::vector<glm::vec3> vertices;
@@ -82,15 +82,49 @@ int main() {
 			plane.buffers.updateTexCoords(coords,true);
 			plane.buffers.updateNormals(normales,true); //comentar esta
 			plane.texture = Texture("models/elevation_gradient_3.png",false,false);
-			reload = false;
 			
+			for(int i=0;i<yuyos.size();i++) { 
+				float y = -99.f;
+				float x;
+				float z;
+				while (y<parametros.nivelMar){
+					x = ((float)rand()/RAND_MAX)*2 - 1.f;
+					z = ((float)rand()/RAND_MAX)*2 - 1.f;
+					
+					float xRuido = (x+1)/(2) * (float)parametros.tamanioMapa;
+					float zRuido = (z+1)/(2) * (float)parametros.tamanioMapa;
+					
+					
+					float xInterMin = floor(xRuido);
+					float xInterMax = ceil(xRuido);
+					
+					
+					float zInterMin = floor(zRuido);
+					float zInterMax = ceil(zRuido);
+					
+					
+					y = interpolacionBilineal(xInterMin, zInterMin, xInterMax, zInterMax,
+													noiseMap[xInterMin][zInterMin], noiseMap[xInterMax][zInterMin],
+														noiseMap[xInterMin][zInterMax], noiseMap[xInterMax][zInterMax],
+															xRuido, zRuido);
+				}
+				
+				float size = ((float) rand()/RAND_MAX)*0.02f;
+				yuyosMats[i] = glm::mat4(	size,	0.00f,  0.00f,	0.00f,
+										  0.00f,	size,	0.00f,	0.00f,
+										  0.00f,	0.00f,	size,	0.00f,
+										  x,	(y-parametros.nivelMar+ size*0.5f), z,	1.00f);
+				 
+			}
+			
+			reload = false;
 		}
 		
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		
 		shader.use();
 		setMatrixes(shader);
-		shader.setLight(glm::vec4{0.f,-8.f,0.f,0.f}, glm::vec3{1.f,1.f,1.f}, 0.15f);
+		shader.setLight(glm::vec4{0.f, 1.f, 1.f, 0.f}, glm::vec3{1.f,1.f,1.f}, 0.0f);
 		for(Model &mod : models) {
 			mod.texture.bind();
 			shader.setMaterial(mod.material);
@@ -99,12 +133,23 @@ int main() {
 			mod.buffers.draw();
 		}
 		
-		//		for(Model &mod : yuyos) {
-		//			shader.setMaterial(mod.material);
-		//			shader.setBuffers(mod.buffers);
-		//			glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-		//			mod.buffers.draw();
-		//		}
+		shader.use();
+		int i=0;
+		for(Model &mod : yuyos) {
+			
+			glm::mat4 model_matrix = 	glm::rotate(glm::mat4(1.f), view_angle,glm::vec3{1.f,0.f,0.f}) *
+										glm::rotate(glm::mat4(1.f), model_angle,glm::vec3{0.f,1.f,0.f}) * yuyosMats[i];
+			
+			glm::mat4 view_matrix = common_callbacks::getMatrixes()[1];
+			glm::mat4 proyection_matrix = common_callbacks::getMatrixes()[2];
+			
+			shader.setMatrixes(model_matrix,view_matrix,proyection_matrix);
+			shader.setMaterial(mod.material);
+			shader.setBuffers(mod.buffers);
+			glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+			mod.buffers.draw();
+			i++;
+		}
 		
 		// IMGUI
 		window.ImGuiDialog("Parametros Perlin",[&](){
@@ -152,6 +197,11 @@ int main() {
 
 ///IMPLEMENTACI?N FUNCIONES
 float interpolacionBilineal(float x1,float z1,float x2,float z2, float v1,float v2,float v3,float v4,float tx,float ty){
+	
+	
+	if(x1==x2) x2++;
+	if(z1==z2) z2++;
+	
 	float sumV1=fabs((tx-x1)*(ty-z1))*v4;
 	float sumV2=fabs((tx-x2)*(ty-z1))*v3;
 	float sumV3=fabs((tx-x1)*(ty-z2))*v2;
@@ -161,6 +211,9 @@ float interpolacionBilineal(float x1,float z1,float x2,float z2, float v1,float 
 }	
 	
 glm::vec3 interpolacionBilinealParanormal(float x1,float z1,float x2,float z2, float v1,float v2,float v3,float v4,float tx,float ty){
+	
+	if(x1==x2) x2++;
+	if(z1==z2) z2++;
 	
 	glm::vec3 n1 = glm::normalize(glm::cross( (glm::vec3(x1,v2,z2) - glm::vec3(x1,v1,z1)) , (glm::vec3(x2,v3,z1) - glm::vec3(x1,v1,z1))));
 	glm::vec3 n2 = glm::normalize(glm::cross( (glm::vec3(x1,v1,z1) - glm::vec3(x2,v2,z1)) , (glm::vec3(x2,v4,z2) - glm::vec3(x2,v2,z1))));
@@ -207,17 +260,27 @@ void interpolarAltura(int i, float xMin, float xMax, float zMin, float zMax, con
 		else{
 			valorInterpolado = interpolacionLineal(zInterMin, zInterMax, noiseMap[xInterMin][zInterMin], noiseMap[xInterMin][zInterMax], zRuido);
 			
-			glm::vec3 v1 = glm::vec3((float)xInterMin, (float)noiseMap[xInterMin][zInterMax], (float)zInterMax) - glm::vec3((float)xInterMin, (float)noiseMap[xInterMin][zInterMin], (float)zInterMin);
 			
-			normal = glm::normalize(glm::cross(v1,glm::vec3(1.f,0.f,0.f)));
-			normal = glm::vec3(0.f,1.f,0.f);
+			normal = interpolacionBilinealParanormal(xInterMin, zInterMin, xInterMax, zInterMax,
+													 noiseMap[xInterMin][zInterMin], noiseMap[xInterMax][zInterMin],
+														 noiseMap[xInterMin][zInterMax], noiseMap[xInterMax][zInterMax],
+															 xRuido, zRuido);
+			
+//			glm::vec3 v1 = glm::vec3((float)xInterMin, (float)noiseMap[xInterMin][zInterMax], (float)zInterMax) - glm::vec3((float)xInterMin, (float)noiseMap[xInterMin][zInterMin], (float)zInterMin);
+//			normal = glm::normalize(glm::cross(v1,glm::vec3(1.f,0.f,0.f)));
+//			normal = glm::vec3(0.f,1.f,0.f);
 		}
 	}else if(zInterMax == zInterMin){
 		valorInterpolado = interpolacionLineal(xInterMin, xInterMax, noiseMap[xInterMin][zInterMax], noiseMap[xInterMax][zInterMax], xRuido);
 		
-		glm::vec3 v1 = glm::vec3((float)xInterMax, noiseMap[xInterMax][zInterMin], (float)zInterMin) - glm::vec3((float)xInterMin, noiseMap[xInterMin][zInterMin], (float)zInterMin);
-		normal = glm::normalize(glm::cross(v1,glm::vec3(0.f,0.f,-1.f)));
-		normal = glm::vec3(0.f,1.f,0.f);
+		normal = interpolacionBilinealParanormal(xInterMin, zInterMin, xInterMax, zInterMax,
+												 noiseMap[xInterMin][zInterMin], noiseMap[xInterMax][zInterMin],
+													 noiseMap[xInterMin][zInterMax], noiseMap[xInterMax][zInterMax],
+														 xRuido, zRuido);
+		
+//		glm::vec3 v1 = glm::vec3((float)xInterMax, noiseMap[xInterMax][zInterMin], (float)zInterMin) - glm::vec3((float)xInterMin, noiseMap[xInterMin][zInterMin], (float)zInterMin);
+//		normal = glm::normalize(glm::cross(v1,glm::vec3(0.f,0.f,-1.f)));
+//		normal = glm::vec3(0.f,1.f,0.f);
 		
 	}else{
 		valorInterpolado = interpolacionBilineal(xInterMin, zInterMin, xInterMax, zInterMax,

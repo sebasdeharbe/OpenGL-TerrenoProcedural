@@ -7,8 +7,10 @@ vec3 calcPhong(vec4 lightPosition, vec3 lightColor,
 	
 	// diffuse
 	vec3 norm = normalize(fragNormal.z<0? fragNormal : -fragNormal);
-	vec3 lightDir = normalize(vec3(lightPosition));
-	vec3 diffuse = diffuseColor * max(dot(norm,lightDir),0.f) * lightColor;
+	vec3 lDir = vec3(lightPosition);
+	lDir = normalize(lDir *-1.f);
+	vec3 lightDir = lDir;
+	vec3 diffuse = diffuseColor * max(pow(dot(norm,lightDir),5),0.f) * lightColor;
 	
 	// specular
 	vec3 viewDir = normalize(-fragPosition);
