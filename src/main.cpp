@@ -30,7 +30,7 @@ typedef struct {
 	float persistency = 2.f;       	//factor de "conservaci?n" de la frecuencia
 	float lacunarity = 0.5f;       	//factor de "desvanecimiento" de la amplitud
 	float nivelMar = 0.4f;       	//esto sube el nivel del mar
-	int cantObjetos = 5;       	//lit
+	int cantObjetos = 20;       	//lit
 }sets;
 sets parametros;
 bool reload = true; 
@@ -51,7 +51,7 @@ void interpolarAltura(int i, float xMin, float xMax, float zMin, float zMax, con
 
 int main() {
 	// initialize window and setup callbacks
-	Window window(win_width,win_height,"Terreno Procedural");
+	Window window(win_width,win_height,"Terreno Procedural",true);
 	setCommonCallbacks(window);
 	
 	// setup OpenGL state and load shaders
@@ -67,19 +67,11 @@ int main() {
 	plane.texture = Texture("models/elevation_gradient_3.png",false,false);
 	
 	// Estos son los yuyos
-	vector<Model> yuyos(100);
+	vector<Model> yuyos(20);
 	vector<glm::mat4> yuyosMats(yuyos.size());
 	for(int i=0;i<yuyos.size();i++) { 
-		yuyos[i] = Model::loadSingle("pasto",Model::fKeepGeometry);
-		yuyos[i].texture = Texture("models/grass.jpg",false,false);
-	}
-	
-	// Estas son las piedras
-	vector<Model> piedras(100);
-	vector<glm::mat4> piedrasMats(piedras.size());
-	for(int i=0;i<piedras.size();i++) { 
-		piedras[i] = Model::loadSingle("piedra",Model::fKeepGeometry);
-		piedras[i].texture = Texture("models/elevation_gradient_2.png",false,false);
+		yuyos[i] = Model::loadSingle("bush",Model::fKeepGeometry);
+		yuyos[i].texture = Texture("models/green.png",true,true);
 	}
 	
 	std::vector<glm::vec3> vertices;
@@ -95,21 +87,20 @@ int main() {
 			plane.buffers.updateNormals(normales,true); //comentar esta
 			
 			//YUYOS
-			for(int i=0;i<parametros.cantObjetos;i++) { 
-				float y = -99.f;
-				float x;
-				float z;
+			for(int i=0;i<20;i++) { 
+				float y = 0.f;
+				float x = 0.f;
+				float z = 0.f;
 				while (y - 0.2f<parametros.nivelMar){
+					
 					x = ((float)rand()/RAND_MAX)*2 - 1.f;
 					z = ((float)rand()/RAND_MAX)*2 - 1.f;
 					
-					float xRuido = (x+1)/(2) * (float)parametros.tamanioMapa;
-					float zRuido = (z+1)/(2) * (float)parametros.tamanioMapa;
-					
+					float xRuido = (x+1.f)/(2.f) * (float)parametros.tamanioMapa;
+					float zRuido = (z+1.f)/(2.f) * (float)parametros.tamanioMapa;
 					
 					float xInterMin = floor(xRuido);
 					float xInterMax = ceil(xRuido);
-					
 					
 					float zInterMin = floor(zRuido);
 					float zInterMax = ceil(zRuido);
@@ -119,70 +110,39 @@ int main() {
 													noiseMap[xInterMin][zInterMin], noiseMap[xInterMax][zInterMin],
 														noiseMap[xInterMin][zInterMax], noiseMap[xInterMax][zInterMax],
 															xRuido, zRuido);
+					if(y != y) y=-999.f;
+					
+					
+					
+					
+					
 				}
 				
-				float size = ((float) rand()/RAND_MAX)*0.015f + 0.01f;
+				float size = ((float) rand()/RAND_MAX)*0.01f + 0.005f;
 				yuyosMats[i] = glm::mat4(	size,	0.00f,  0.00f,	0.00f,
 										  0.00f,	size,	0.00f,	0.00f,
 										  0.00f,	0.00f,	size,	0.00f,
 										  x,	(y-parametros.nivelMar+ size*0.5f), z,	1.00f);
-				 
-			}
-			for(int i=parametros.cantObjetos;i<100;i++) { 
-				yuyosMats[i] = glm::mat4(	0.0f,	0.00f,  0.00f,	0.00f,
-											0.0f,	0.00f,  0.00f,	0.00f,
-											0.0f,	0.00f,  0.00f,	0.00f,
-											0.0f,	0.00f,  0.00f,	0.00f);
-				 
-			}
-			
-			//PIEDRAS
-			for(int i=0;i<parametros.cantObjetos;i++) { 
-				float y = -99.f;
-				float x;
-				float z;
-			
-				x = ((float)rand()/RAND_MAX)*2 - 1.f;
-				z = ((float)rand()/RAND_MAX)*2 - 1.f;
-				
-				float xRuido = (x+1)/(2) * (float)parametros.tamanioMapa;
-				float zRuido = (z+1)/(2) * (float)parametros.tamanioMapa;
-				
-				
-				float xInterMin = floor(xRuido);
-				float xInterMax = ceil(xRuido);
-				
-				
-				float zInterMin = floor(zRuido);
-				float zInterMax = ceil(zRuido);
-				
-				
-				y = interpolacionBilineal(xInterMin, zInterMin, xInterMax, zInterMax,
-												noiseMap[xInterMin][zInterMin], noiseMap[xInterMax][zInterMin],
-													noiseMap[xInterMin][zInterMax], noiseMap[xInterMax][zInterMax],
-														xRuido, zRuido);
-				
-				float size = ((float) rand()/RAND_MAX)*0.015f + 0.01f;
-				
-				piedrasMats[i] = glm::mat4(	size,	0.00f,  0.00f,	0.00f,
-										  0.00f,	size,	0.00f,	0.00f,
-										  0.00f,	0.00f,	size,	0.00f,
-										  x,	(y-parametros.nivelMar - size*0.5f), z,	1.00f);
 				
 				size *= 10000.f;
-				piedrasMats[i] = piedrasMats[i] * glm::mat4(cos(size),	0.00f,  sin(size),	0.00f,
-											0.0f,	1.00f,  0.00f,	0.00f,
-											-1.f*sin(size),	0.00f,  cos(size),	0.00f,
-											0.0f,	0.00f,  0.00f,	1.00f) ;
+				yuyosMats[i] = yuyosMats[i] * 	glm::mat4(cos(size),	0.00f,  sin(size),	0.00f,
+												0.0f,	1.00f,  0.00f,	0.00f,
+												-1.f*sin(size),	0.00f,  cos(size),	0.00f,
+												0.0f,	0.00f,  0.00f,	1.00f);
+				
+				cout<<"x: "<<x<<"    y: "<<y<<"    z: "<<z<<endl;
+				cout<<"size: "<<size<<"       cuentita: "<<(y-parametros.nivelMar+ size*0.5f)<<endl;
+				
 				 
 			}
-			for(int i=parametros.cantObjetos;i<100;i++) { 
-				piedrasMats[i] = glm::mat4(	0.0f,	0.00f,  0.00f,	0.00f,
-											0.0f,	0.00f,  0.00f,	0.00f,
-											0.0f,	0.00f,  0.00f,	0.00f,
-											0.0f,	0.00f,  0.00f,	0.00f);
-				 
-			}
+//			for(int i=parametros.cantObjetos;i<100;i++) { 
+//				yuyosMats[i] = glm::mat4(	0.0f,	0.00f,  0.00f,	0.00f,
+//											0.0f,	0.00f,  0.00f,	0.00f,
+//											0.0f,	0.00f,  0.00f,	0.00f,
+//											0.0f,	0.00f,  0.00f,	0.00f);
+//				 
+//			}
+			
 			reload = false;
 		}
 		
@@ -205,25 +165,6 @@ int main() {
 			mod.texture.bind();
 			glm::mat4 model_matrix = 	glm::rotate(glm::mat4(1.f), view_angle,glm::vec3{1.f,0.f,0.f}) *
 										glm::rotate(glm::mat4(1.f), model_angle,glm::vec3{0.f,1.f,0.f}) * yuyosMats[i];
-			
-			glm::mat4 view_matrix = common_callbacks::getMatrixes()[1];
-			glm::mat4 proyection_matrix = common_callbacks::getMatrixes()[2];
-			
-			shader.setMatrixes(model_matrix,view_matrix,proyection_matrix);
-			shader.setMaterial(mod.material);
-			shader.setBuffers(mod.buffers);
-			glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-			mod.buffers.draw();
-			i++;
-		}
-		
-		
-		shader.use();
-		i=0;//Dibujar piedras
-		for(Model &mod : piedras) {
-			mod.texture.bind();
-			glm::mat4 model_matrix = 	glm::rotate(glm::mat4(1.f), view_angle,glm::vec3{1.f,0.f,0.f}) *
-										glm::rotate(glm::mat4(1.f), model_angle,glm::vec3{0.f,1.f,0.f}) * piedrasMats[i];
 			
 			glm::mat4 view_matrix = common_callbacks::getMatrixes()[1];
 			glm::mat4 proyection_matrix = common_callbacks::getMatrixes()[2];
@@ -259,7 +200,7 @@ int main() {
 			if(ImGui::SliderFloat("Persistencia", &parametros.persistency, 1, 10)) reload = true;
 			if(ImGui::SliderFloat("Lacunarity", &parametros.lacunarity, 0, 1)) reload = true;
 			if(ImGui::SliderFloat("Nivel del mar", &parametros.nivelMar, 0, 2)) reload = true;
-			if(ImGui::SliderInt("Cantidad de yuyos", &parametros.cantObjetos, 0, 100)) reload = true;
+//			if(ImGui::SliderInt("Cantidad de yuyos", &parametros.cantObjetos, 0, 20)) reload = true;
 			if (ImGui::Button("Reset")) {
 				parametros.tamanioMapa = 32;
 				parametros.numeroDeOctavas = 8;
@@ -278,7 +219,9 @@ int main() {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		
-	} while(glfwGetKey(window,GLFW_KEY_ESCAPE)!=GLFW_PRESS && !glfwWindowShouldClose(window) );
+	} while(glfwGetKey(window,GLFW_KEY_ESCAPE)!=GLFW_PRESS && !glfwWindowShouldClose(window));
+	
+	cout<<"XD";
 }
 
 ///IMPLEMENTACI?N FUNCIONES
