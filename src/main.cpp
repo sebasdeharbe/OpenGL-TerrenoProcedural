@@ -84,7 +84,7 @@ int main() {
 			modifyMesh(plane.geometry.positions, plane.geometry.normals,vertices, normales,coords, noiseMap);
 			plane.buffers.updatePositions(vertices,true);
 			plane.buffers.updateTexCoords(coords,true);
-			plane.buffers.updateNormals(normales,true); //comentar esta
+			plane.buffers.updateNormals(normales,true);
 			
 			//YUYOS
 			for(int i=0;i<20;i++) { 
@@ -135,13 +135,6 @@ int main() {
 				
 				 
 			}
-//			for(int i=parametros.cantObjetos;i<100;i++) { 
-//				yuyosMats[i] = glm::mat4(	0.0f,	0.00f,  0.00f,	0.00f,
-//											0.0f,	0.00f,  0.00f,	0.00f,
-//											0.0f,	0.00f,  0.00f,	0.00f,
-//											0.0f,	0.00f,  0.00f,	0.00f);
-//				 
-//			}
 			
 			reload = false;
 		}
