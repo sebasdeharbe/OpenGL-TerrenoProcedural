@@ -199,7 +199,7 @@ int main() {
 			}
 			if(ImGui::SliderFloat("Persistencia", &parametros.persistency, 1, 10)) reload = true;
 			if(ImGui::SliderFloat("Lacunarity", &parametros.lacunarity, 0, 1)) reload = true;
-			if(ImGui::SliderFloat("Nivel del mar", &parametros.nivelMar, 0, 2)) reload = true;
+			if(ImGui::SliderFloat("Nivel del mar", &parametros.nivelMar, 0, 1)) reload = true;
 //			if(ImGui::SliderInt("Cantidad de yuyos", &parametros.cantObjetos, 0, 20)) reload = true;
 			if (ImGui::Button("Reset")) {
 				parametros.tamanioMapa = 32;
