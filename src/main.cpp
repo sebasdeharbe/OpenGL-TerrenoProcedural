@@ -21,7 +21,7 @@ using namespace std;
 
 ///GLOBALES
 typedef struct {
-	int tamanioMapa = 32;
+	int tamanioMapa = 64;
 	int numeroDeOctavas = 8;  		//numero de octavas
 	int fact = 1; 					//escala de ruido
 	int freq = 1;			 		//frecuencia
@@ -204,7 +204,7 @@ int main() {
 			ImGui::Checkbox("Wireframe",&parametros.wireframe);
 			if(ImGui::Checkbox("Objetos activados",&parametros.objetosActivados)) reload = true;
 			if (ImGui::Button("Reset")) {
-				parametros.tamanioMapa = 32;
+				parametros.tamanioMapa = 64;
 				parametros.numeroDeOctavas = 8;
 				parametros.fact = 1;
 				parametros.freq = 1;
