@@ -91,7 +91,7 @@ int main() {
 				float y = 0.f;
 				float x = 0.f;
 				float z = 0.f;
-				while (y - 0.2f<parametros.nivelMar){
+				while (y - 0.2f<parametros.nivelMar && parametros.nivelMar<0.9f){
 					
 					x = ((float)rand()/RAND_MAX)*2 - 1.f;
 					z = ((float)rand()/RAND_MAX)*2 - 1.f;
