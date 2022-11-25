@@ -271,6 +271,7 @@ float interpolacionLineal(float x1,float x2, float v1,float v2, float tx){
 }
 	
 void interpolarAltura(int i, float xMin, float xMax, float zMin, float zMax, const std::vector<glm::vec3> &v, vector<vector<float>> &noiseMap, float &valorInterpolado, glm::vec3 &normal) {
+	
 	float deltaX = abs(xMax - xMin);
 	float deltaZ = abs(zMax - zMin);
 	
