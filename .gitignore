@@ -11,7 +11,7 @@
 bin/opengl32.dll
 
 # Ejecutable
-*.exe
+#*.exe
 
 # Zinjai Project (por el momento, dejar comentado)
 # *.zpr
@@ -21,3 +21,6 @@ tmp/debug_win
 
 citas que me gustaría incluír de alguna forma.txt
 About_this.odp
+
+#Carpeta de programa
+prog
